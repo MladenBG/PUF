@@ -31,22 +31,31 @@ class OnboardingViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     fun onNameChange(value: String)     = _uiState.update { it.copy(name = value) }
-    fun onCigsPerDayChange(value: Int)  = _uiState.update { it.copy(cigarettesPerDay = value.coerceIn(1, 100)) }
+
+    // Removed the upper limit. Now allows any number as long as it is at least 1.
+    fun onCigsPerDayChange(value: Int)  = _uiState.update { it.copy(cigarettesPerDay = value.coerceAtLeast(1)) }
+
     fun onPriceChange(value: Float)     = _uiState.update { it.copy(pricePerPack = value.coerceAtLeast(0f)) }
-    fun onCigsPerPackChange(value: Int) = _uiState.update { it.copy(cigarettesPerPack = value.coerceIn(1, 40)) }
+
+    // Removed the upper limit here as well just in case.
+    fun onCigsPerPackChange(value: Int) = _uiState.update { it.copy(cigarettesPerPack = value.coerceAtLeast(1)) }
+
     fun onPlanDaysChange(value: Int)    = _uiState.update { it.copy(planDays = value) }
+
     fun onCurrencyChange(value: String) = _uiState.update { it.copy(currency = value) }
 
     fun saveAndStart() {
         val state = _uiState.value
-        if (state.name.isBlank()) return
+
+        // Provide a default name if the field was left blank by the user
+        val finalName = if (state.name.isBlank()) "User" else state.name
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
 
             repository.saveOnboardingData(
-                name              = state.name,
+                name              = finalName,
                 cigarettesPerDay  = state.cigarettesPerDay,
                 pricePerPack      = state.pricePerPack,
                 cigarettesPerPack = state.cigarettesPerPack,
