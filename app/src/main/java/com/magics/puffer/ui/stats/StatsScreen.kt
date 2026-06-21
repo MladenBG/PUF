@@ -8,9 +8,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size as GeoSize
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,6 +17,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.magics.puffer.ui.theme.*
 import java.util.Locale
+
+// Vico Charts 1.15.0 Stable Imports
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.entry.FloatEntry
 
 /**
  * Stats screen — shows aggregate savings, cigarettes avoided, and the
@@ -57,7 +62,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(8.dp))
 
-        // ── Big stats cards ──────────────────────────────────────────────────
+        // Big stats cards
         Row(
             modifier = Modifier.padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -102,7 +107,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(20.dp))
 
-        // ── Savings visual bar ───────────────────────────────────────────────
+        // Savings visual bar
         SavingsBar(
             moneySaved = state.totalMoneySaved,
             currency   = state.currency,
@@ -111,7 +116,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(20.dp))
 
-        // ── Chart: last 30 days ──────────────────────────────────────────────
+        // Professional Vico Chart: last 30 days
         if (state.logs.isNotEmpty()) {
             Box(
                 modifier = Modifier
@@ -126,18 +131,42 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
                         "Last 30 Days — Cigarettes per Day",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(24.dp))
 
-                    // Simple custom bar chart (no external lib needed for basic visualization)
-                    SimpleBarChart(
-                        data   = state.logs.map { it.cigarettesSmoked },
-                        target = state.originalPerDay,
-                        modifier = Modifier.fillMaxWidth().height(120.dp)
-                    )
+                    // Convert database logs to Vico Chart entries safely
+                    val chartEntries = remember(state.logs) {
+                        state.logs.mapIndexed { index, log ->
+                            FloatEntry(
+                                x = index.toFloat(),
+                                y = log.cigarettesSmoked.toFloat()
+                            )
+                        }
+                    }
 
-                    Spacer(Modifier.height(8.dp))
+                    if (chartEntries.isNotEmpty()) {
+                        val chartEntryModelProducer = remember(chartEntries) {
+                            ChartEntryModelProducer(chartEntries)
+                        }
+
+                        Chart(
+                            chart = columnChart(),
+                            chartModelProducer = chartEntryModelProducer,
+                            startAxis = rememberStartAxis(),
+                            bottomAxis = rememberBottomAxis(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+                    } else {
+                        Text(
+                            "Not enough data to display chart.",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = PufferGray)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
                     Text(
-                        "Green bars = at or below plan  •  Red = over plan",
+                        "Track your daily progress and reductions.",
                         style = MaterialTheme.typography.labelSmall.copy(color = PufferGray),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -148,14 +177,14 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
 
         Spacer(Modifier.height(20.dp))
 
-        // ── General benefit timeline ────────────────────────────────────────
+        // General benefit timeline
         BenefitTimeline(smokeFreeCount = state.smokeFreeCount, modifier = Modifier.padding(horizontal = 16.dp))
 
         Spacer(Modifier.height(32.dp))
     }
 }
 
-// ── Big Stat Card ─────────────────────────────────────────────────────────
+// Big Stat Card
 @Composable
 private fun BigStatCard(
     modifier: Modifier = Modifier,
@@ -182,7 +211,7 @@ private fun BigStatCard(
     }
 }
 
-// ── Savings Bar ───────────────────────────────────────────────────────────
+// Savings Bar
 @Composable
 private fun SavingsBar(moneySaved: Float, currency: String, modifier: Modifier = Modifier) {
     val milestones = listOf(500f to "500", 1000f to "1K", 2000f to "2K", 5000f to "5K")
@@ -235,36 +264,7 @@ private fun SavingsBar(moneySaved: Float, currency: String, modifier: Modifier =
     }
 }
 
-// ── Simple Canvas Bar Chart ───────────────────────────────────────────────
-@Composable
-private fun SimpleBarChart(data: List<Int>, target: Int, modifier: Modifier = Modifier) {
-    val maxVal = (data.maxOrNull() ?: 1).coerceAtLeast(target).toFloat()
-
-    Canvas(modifier = modifier) {
-        val barCount = data.size
-        if (barCount == 0) return@Canvas
-        val totalWidth = size.width
-        val totalHeight = size.height
-        val barWidth = (totalWidth / barCount) * 0.7f
-        val gap = (totalWidth / barCount) * 0.3f
-
-        data.forEachIndexed { index, value ->
-            val barHeight = (value / maxVal) * totalHeight
-            val x = index * (barWidth + gap)
-            val y = totalHeight - barHeight
-            val color = if (value <= target) PufferGreen else PufferRed
-
-            drawRoundRect(
-                color        = color,
-                topLeft      = Offset(x, y),
-                size         = GeoSize(barWidth, barHeight),
-                cornerRadius = CornerRadius(4f, 4f)
-            )
-        }
-    }
-}
-
-// ── Benefit Timeline ──────────────────────────────────────────────────────
+// Benefit Timeline
 @Composable
 private fun BenefitTimeline(smokeFreeCount: Int, modifier: Modifier = Modifier) {
     // General well-being benefits — purely motivational, no medical claims

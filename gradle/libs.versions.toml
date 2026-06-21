@@ -13,7 +13,7 @@ roomVersion = "2.6.1"
 datastoreVersion = "1.1.1"
 hiltVersion = "2.51.1"
 hiltNavigationCompose = "1.2.0"
-vicoVersion = "2.0.0-beta.3"
+vicoVersion = "1.15.0"
 lottieVersion = "6.5.2"
 lifecycleViewModelCompose = "2.8.4"
 kotlinxDatetime = "0.6.0"
@@ -42,7 +42,7 @@ androidx-compose-material-icons-extended = { group = "androidx.compose.material"
 # Navigation
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
-# Room (KAPT for annotation processing — more stable on Windows than KSP)
+# Room (KAPT for annotation processing)
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomVersion" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "roomVersion" }
