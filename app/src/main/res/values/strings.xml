@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Puffer</string>
+
+    <!-- Disclaimer — store-safe motivational language, no medical terms -->
+    <string name="disclaimer_short">For motivation and habit tracking only. Not medical advice.</string>
+    <string name="disclaimer_full">This app is a personal motivation and habit tracker created from a personal smoke-free journey.
+        It is intended for informational and motivational purposes only and is not a substitute for
+        professional advice. Always consult a qualified healthcare professional for any health concerns.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to Puffer</string>
+    <string name="onboarding_welcome_subtitle">Track your habit, count your savings, celebrate every smoke-free day.</string>
+
+    <!-- Navigation labels -->
+    <string name="nav_today">Today</string>
+    <string name="nav_plan">Plan</string>
+    <string name="nav_stats">Stats</string>
+    <string name="nav_badges">Badges</string>
+    <string name="nav_seeds">Seeds</string>
+
+    <!-- General -->
+    <string name="cigarettes_per_day">cigarettes per day</string>
+    <string name="smoke_free_days">smoke-free days</string>
+    <string name="money_saved">money saved</string>
+    <string name="cigs_avoided">cigarettes not smoked</string>
+    <string name="day_streak">day streak</string>
+</resources>
